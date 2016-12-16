@@ -801,7 +801,7 @@ A `Promise` is in one of these states:
 - *rejected*: failed operation.
 - *settled*: the Promise is either fulfilled or rejected, but not pending.
 
-![](//mdn.mozillademos.org/files/8633/promises.png)
+![](https://mdn.mozillademos.org/files/8633/promises.png)
 
 #### Loading an image with XHR
 
