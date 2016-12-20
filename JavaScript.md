@@ -917,6 +917,8 @@ for (let i of arr) {
 
 ## Functions
 
+> Functions are one of the fundamental building blocks in JavaScript. A function is a JavaScript procedure—a set of statements that performs a task or calculates a value. To use a function, you must define it somewhere in the scope from which you wish to call it.
+
 ### Defining functions
 
 #### Function declarations
@@ -2532,6 +2534,8 @@ function testInfo(phoneInput) {
 
 ## Indexed collections
 
+> introduces collections of data which are ordered by an index value.
+
 ### `Array` object
 
 An *array* is an ordered set of values that you refer to with a name and an index. For example, you could have an array called `emp` that contains employees' names indexed by their employee number. So `emp[1]` would be employee number one, `emp[2]` employee number two, and so on.
@@ -2862,6 +2866,294 @@ console.log(a2); // ["A", "B", "C"]
 
 ```javascript
 var a1 = ["a", 10, "b", 20, "c", 30];
-var a2 = 
+var a2 = a1.filter(function(item) {
+    return typeof item === "number";
+});
+console.log(a2); // [10, 20, 30]
+```
+
+[`every(callback[, thisObject\])`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every) returns true if `callback` returns true for every item in the array.
+
+```javascript
+function isNumber(value) {
+    return typeof value === "number";
+}
+var a1 = [1, 2, 3];
+console.log(a1.every(isNumber)); // true
+var a2 = [1, "2", 3];
+console.log(a2.every(isNumber)); // false
+```
+
+[`some(callback[, thisObject\])`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some) returns true if `callback` returns true for at least one item in the array.
+
+```javascript
+function isNumber(value) {
+    return typeof value === "number";
+}
+var a1 = [1, 2, 3];
+console.log(a1.some(isNumber)); // true
+var a2 = [1, "2", 3];
+console.log(a2.some(isNumber)); // true
+var a3 = ["1", "2", "3"];
+console.log(a3.some(isNumber)); // false
+```
+
+The methods above that take a callback are known as *iterative methods*, because they iterate over the entire array in some fashion. Each one takes an optional second argument called `thisObject`. If provided, `thisObject` becomes the value of the `this` keyword inside the body of the callback function. If not provided, as with other cases where a function is invoked outside of an explicit object context, `this` will refer to the global object ([`window`](https://developer.mozilla.org/en-US/docs/Web/API/Window)).
+
+The callback function is actually called with three arguments. The first is the value of the current item, the second is its array index, and the third is a reference to the array itself. JavaScript functions ignore any arguments that are not named in the parameter list so it is safe to provide a callback function that only takes a single argument, such as `alert`.
+
+[`reduce(callback[, initialValue\])`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce) applies `callback(firstValue, secondValue)` to reduce the list of items down to a single value.
+
+```javascript
+var a = [10, 20, 30];
+var total = a.reduce(function(first, second) {
+    return first + second;
+}, 0);
+console.log(total); // 60
+```
+
+[`reduceRight(callback[, initialValue\])`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduceRight) works like `reduce()`, but starts with the last element.
+
+`reduce` and `reduceRight` are the least obvious of the iterative array methods. They should be used for algorithms that combine two values recursively in order to reduce a sequence down to a single value.
+
+#### Multi-dimensional arrays
+
+Arrays can be nested, meaning that an array can contain another array as an element. Using this characteristic of JavaScript arrays, multi-dimensional arrays can be created.
+
+The following code creates a two-dimensional array.
+
+```javascript
+var a = new Array(4);
+for (var i = 0; i < 4; i++) {
+    a[i] = new Array(4);
+    for (var j = 0; j < 4; j++) {
+        a[i][j] = "[" + i + ", " + j + "]";
+    }
+}
+```
+
+This example creates an array with the following rows:
+
+```javascript
+Row 0: [0,0] [0,1] [0,2] [0,3]
+Row 1: [1,0] [1,1] [1,2] [1,3]
+Row 2: [2,0] [2,1] [2,2] [2,3]
+Row 3: [3,0] [3,1] [3,2] [3,3]
+```
+
+#### Arrays and regular expressions
+
+When an array is the result of a match between a regular expression and a string, the array returns properties and elements that provide information about the match. An array is the return value of [`RegExp.exec()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec), [`String.match()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match), and [`String.split()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split). For information on using arrays with regular expressions, see [Regular Expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions).
+
+#### Working with array-like objects
+
+Some JavaScript objects, such as the [`NodeList`](https://developer.mozilla.org/en-US/docs/Web/API/NodeList) returned by [`document.getElementsByTagName()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/getElementsByTagName) or the [`arguments`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments) object made available within the body of a function, look and behave like arrays on the surface but do not share all of their methods. The `arguments` object provides a [`length`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/length) attribute but does not implement the [`forEach()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach) method, for example.
+
+Array prototype methods can be called against other array-like objects. for example:
+
+```javascript
+function printArguments() {
+    Array.prototype.forEach.call(arguments, function(item) {
+        console.log(item);
+    });
+}
+```
+
+Array prototype methods can be used on strings as well, since they provide sequential access to their characters in a similar way to arrays:
+
+```javascript
+Array.prototype.forEach.call("a string", function(chr) {
+    console.log(chr);
+});
+```
+
+### Typed Arrays
+
+[JavaScript typed arrays](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays) are array-like objects and provide a mechanism for accessing raw binary data. As you already know, [`Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)objects grow and shrink dynamically and can have any JavaScript value. JavaScript engines perform optimizations so that these arrays are fast. However, as web applications become more and more powerful, adding features such as audio and video manipulation, access to raw data using [WebSockets](https://developer.mozilla.org/en-US/docs/WebSockets), and so forth, it has become clear that there are times when it would be helpful for JavaScript code to be able to quickly and easily manipulate raw binary data in typed arrays.
+
+#### Buffers and views: typed array architecture
+
+To achieve maximum flexibility and efficiency, JavaScript typed arrays split the implementation into **buffers** and **views**. A buffer (implemented by the [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) object) is an object representing a chunk of data; it has no format to speak of, and offers no mechanism for accessing its contents. In order to access the memory contained in a buffer, you need to use a view. A view provides a context — that is, a data type, starting offset, and number of elements — that turns the data into an actual typed array.
+
+![Typed arrays in an ArrayBuffer](https://mdn.mozillademos.org/files/8629/typed_arrays.png)
+
+#### ArrayBuffer
+
+The [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) is a data type that is used to represent a generic, fixed-length binary data buffer. You can't directly manipulate the contents of an `ArrayBuffer`; instead, you create a typed array view or a [`DataView`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView) which represents the buffer in a specific format, and use that to read and write the contents of the buffer.
+
+#### Typed array views
+
+Typed array views have self descriptive names and provide views for all the usual numeric types like `Int8`, `Uint32`, `Float64` and so forth. There is one special typed array view, the `Uint8ClampedArray`. It clamps the values between 0 and 255. This is useful for [Canvas data processing](https://developer.mozilla.org/en-US/docs/Web/API/ImageData), for example.
+
+| Type                                     | Size in bytes | Description                            | Web IDL type          | Equivalent C type |
+| ---------------------------------------- | ------------- | -------------------------------------- | --------------------- | ----------------- |
+| [`Int8Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array) | 1             | 8-bit two's complement signed integer  | `byte`                | `int8_t`          |
+| [`Uint8Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) | 1             | 8-bit unsigned integer                 | `octet`               | `uint8_t`         |
+| [`Uint8ClampedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray) | 1             | 8-bit unsigned integer (clamped)       | `octet`               | `uint8_t`         |
+| [`Int16Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array) | 2             | 16-bit two's complement signed integer | `short`               | `int16_t`         |
+| [`Uint16Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array) | 2             | 16-bit unsigned integer                | `unsigned short`      | `uint16_t`        |
+| [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array) | 4             | 32-bit two's complement signed integer | `long`                | `int32_t`         |
+| [`Uint32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array) | 4             | 32-bit unsigned integer                | `unsigned long`       | `uint32_t`        |
+| [`Float32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array) | 4             | 32-bit IEEE floating point number      | `unrestricted float`  | `float`           |
+| [`Float64Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array) | 8             | 64-bit IEEE floating point number      | `unrestricted double` | `double`          |
+
+For more information, see [JavaScript typed arrays](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays) and the reference documentation for the different [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray) objects.
+
+## Keyed collections
+
+> introduces collections of data which are ordered by a key; Map and Set objects contain elements which are iterable in the order of insertion.
+
+### Maps
+
+#### Map object
+
+ECMAScript 6 introduces a new data structure to map values to values. A [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) object is a simple key/value map and can iterate its elements in insertion order.
+
+The following code shows some basic operations with a `Map`. See also the [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) reference page for more examples and the complete API. You can use a [`for...of`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of) loop to return an array of `[key, value]` for each iteration.
+
+```javascript
+var sayings = new Map();
+sayings.set("dog", "woof");
+sayings.set("cat", "meow");
+sayings.set("elephant", "toot");
+sayings.size; // 3
+sayings.get("fox"); // undefined
+sayings.has("bird"); // false
+sayings.delete("dog"); // true
+sayings.has("dog"); // false
+for (var [key, value] of sayings) {
+    console.log(key + " goes " + value);
+}
+// cat goes meow
+// elephant goes toot
+sayings.clear();
+sayings.size; // 0
+```
+
+#### `Object` and `Map` compared
+
+Traditionally, [objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) have been used to map strings to values. Objects allow you to set keys to values, retrieve those values, delete keys, and detect whether something is stored at a key. `Map` objects, however, have a few more advantages that make them better maps.
+
+- The keys of an `Object` are [`Strings`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String), where they can be of any value for a `Map`.
+- You can get the size of a `Map` easily while you have to manually keep track of size for an `Object`.
+- The iteration of maps is in insertion order of the elements.
+- An `Object` has a prototype, so there are default keys in the map. (this can be bypassed using `map = Object.create(null)`).
+
+These three tips can help you to decide whether to use a `Map` or an `Object`:
+
+- Use maps over objects when keys are unknown until run time, and when all keys are the same type and all values are the same type.
+- Use maps in case if there is a need to store primitive values as keys because object treats each key as a string whether it's a number value, boolean value or any other primitive value.
+- Use objects when there is logic that operates on individual elements.
+
+#### `WeakMap` object
+
+The [`WeakMap`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap) object is a collection of key/value pairs in which the **keys are objects only** and the values can be arbitrary values. The object references in the keys are held *weakly* meaning that they are target of garbage collection (GC) if there is no other reference to the object anymore. The `WeakMap` API is the same as the `Map` API.
+
+One difference to `Map` objects is that `WeakMap` keys are not enumerable (i.e. there is no method giving you a list of the keys). If they were, the list would depend on the state of garbage collection, introducing non-determinism.
+
+For more information and example code, see also "Why *Weak*Map?" on the [`WeakMap`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap) reference page.
+
+One use case of `WeakMap` objects is to store private data for an object or to hide implementation details. The following example is from Nick Fitzgerald blog post ["Hiding Implementation Details with ECMAScript 6 WeakMaps"](http://fitzgeraldnick.com/weblog/53/). The private data and methods belong inside the object and are stored in the `privates` WeakMap object. Everything exposed on the instance and prototype is public; everything else is inaccessible from the outside world because `privates` is not exported from the module.
+
+```javascript
+const privates = new WeakMap();
+function Public() {
+    const me = {
+        // Private data goes here
+    };
+    privates.set(this, me);
+}
+Public.prototype.method = function() {
+    const me = privates.get(this);
+    // Do stuff with private data in `me` ...
+};
+module.exports = Public;
+```
+
+### Sets
+
+#### `Set` object
+
+[`Set`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) objects are collections of values. You can iterate its elements in insertion order. A value in a `Set` may only occur once; it is unique in the `Set`'s collection.
+
+The following code shows some basic operations with a `Set`. See also the [`Set`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) reference page for more examples and the complete API.
+
+```javascript
+var mySet = new Set();
+mySet.add(1);
+mySet.add("some text");
+mySet.add("foo");
+mySet.has(1); // true
+mySet.delete("foo"); // true
+mySet.size; // 2
+for (let item of mySet) {
+    console.log(item);
+}
+// 1
+// some text
+```
+
+#### Converting between Array and Set
+
+You can create an [`Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) from a Set using [`Array.from`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from) or the [spread operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator). Also, the `Set` constructor accepts an `Array` to convert in the other direction. Note again that `Set` objects store unique values, so any duplicate elements from an Array are deleted when converting.
+
+```javascript
+Array.from(mySet); // [1, "some text"]
+
+mySet2 = new Set([1, 2, 3, 4]); // Set {1, 2, 3, 4}
+```
+
+#### `Array` and `Set` compared
+
+Traditionally, a set of elements has been stored in arrays in JavaScript in a lot of situations. The new `Set` object, however, has some advantages:
+
+- Checking whether an element exists in an collection using [`indexOf`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf) for arrays is slow.
+- `Set` objects let you delete elements by their value. With an array you would have to splice based on a element's index.
+- The value [`NaN`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN) cannot be found with `indexOf` in array.
+- `Set` objects store unique values, you don't have to keep track of duplicates by yourself.
+
+#### `WeakSet` object
+
+[`WeakSet`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet) objects are collections of objects. An object in the `WeakSet` may only occur once; it is unique in the `WeakSet`'s collection and objects are not enumerable.
+
+The main differences to the [`Set`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) object are:
+
+- In contrast to `Sets`, `WeakSets` are **collections of objects only** and not of arbitrary values of any type.
+- The `WeakSet` is *weak*: References to objects in the collection are held weakly. If there is no other reference to an object stored in the `WeakSet`, they can be garbage collected. That also means that there is no list of current objects stored in the collection. `WeakSets` are not enumerable.
+
+The use cases of `WeakSet` objects are limited. They will not leak memory so it can be safe to use DOM elements as a key and mark them for tracking purposes, for example.
+
+### Key and value equality of `Map` and `Set`
+
+Both, the key equality of `Map` objects and the value equality of `Set` objects, are based on the "[same-value-zero algorithm](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-samevaluezero)":
+
+- Equality works like the identity comparison operator `===`.
+- `-0` and `+0` are considered equal.
+- [`NaN`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN) is considered equal to itself (contrary to `===`).
+
+## Working with objects
+
+> JavaScript is designed on a simple object-based paradigm. An object is a collection of properties, and a property is an association between a name (or *key*) and a value. A property's value can be a function, in which case the property is known as a method. In addition to objects that are predefined in the browser, you can define your own objects.
+
+### Objects and properties
+
+A JavaScript object has properties associated with it. A property of an object can be explained as a variable that is attached to the object. Object properties are basically the same as ordinary JavaScript variables, except for the attachment to objects. The properties of an object define the characteristics of the object. You access the properties of an object with a simple dot-notation:
+
+> objectName.propertyName
+
+Like all JavaScript variables, both the object name (which could be a normal variable) and property name are case sensitive. You can define a property by assigning it a value. Unassigned properties of an object are [`undefined`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined) (and not [`null`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null)). Properties of JavaScript objects can also be accessed or set using a bracket notation (for more details see [property accessors](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors)). Objects are sometimes called *associative arrays*, since each property is associated with a string value that can be used to access it.
+
+An object property name can be any valid JavaScript string, or anything that can be converted to a string, including the empty string. However, any property name that is not a valid JavaScript identifier (for example, a property name that has a space or a hyphen, or that starts with a number) can only be accessed using the square bracket notation. This notation is also very useful when property names are to be dynamically determined (when the property name is not determined until runtime). Examples are as follows:
+
+```javascript
+// four variables are created and assigned in a single go, separated by commas
+var myObj = new Object(), str = "myString", rand = Math.random(), obj = new Object();
+myObj.type = "Dot syntax";
+myObj["date created"] = "String with space";
+myObj[str] = "String value";
+myObj[rand] = "Random Number";
+myObj[obj] = "Object";
+myObj[""] = "Even an empty string";
+console.log(myObj);
 ```
 
