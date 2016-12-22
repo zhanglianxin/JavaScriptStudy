@@ -3393,3 +3393,60 @@ car1.color = "black";
 See the [`prototype` property](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/prototype) of the `Function` object in the [JavaScript reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference) for more information.
 
 ### Defining methods
+
+A *method* is a function associated with an object, or, simply put, a method is a property of an object that is a function. Methods are defined the way normal functions are defined, except that they have to be assigned as the property of an object. See also [method definitions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions) for more details. An example is:
+
+```javascript
+objectName.methodname = function_name;
+var myObj = {
+    myMethod: function(params) {
+        // ...do something
+    }
+};
+```
+
+where `objectName` is an existing object, `methodname` is the name you are assigning to the method, and `function_name` is the name of the function.
+
+You can then call the method in the context of the object as follows:
+
+```javascript
+object.methodname(params);
+```
+
+You can define methods for an object type by including a method definition in the object constructor function. For example, you could define a function that would format and display the properties of the previously-defined `car` objects; for example,
+
+```javascript
+function displayCar() {
+    var result = "A Beautiful " + this.year + " " + this.make + " " + this.model;
+    pretty_print(result);
+}
+```
+
+where `pretty_print` is a function to display a horizontal rule and a string. Notice the use of `this` to refer to the object to which the method belongs.
+
+You can make this function a method of `car` by adding the statement
+
+```javascript
+this.displayCar = displayCar;
+```
+
+to the object definition. So, the full definition of `car` would now look like
+
+```javascript
+function Car(make, model, year, owner) {
+    this.make = make;
+    this.model = model;
+    this.year = year;
+    this.owner = owner;
+    this.displayCar = displayerCar;
+}
+```
+
+Then you can call the `displayCar` method for each of the objects as follows:
+
+```javascript
+car1.displayCar();
+car2.displayCar();
+```
+
+### Using `this` for object references
