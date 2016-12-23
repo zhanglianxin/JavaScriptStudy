@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>多级复选框</title>
+    <style>
+        ul {
+            list-style-type: none;
+        }
+        input[type='checkbox'].item {
+            margin-left: 40px;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <input type="checkbox" id="checkall">ALL
+    <ul>
+        <input type="checkbox">A
+        <li>
+            <input type="checkbox" class="item">A0
+        </li>
+        <li>
+            <input type="checkbox" class="item">A1
+        </li>
+        <li>
+            <input type="checkbox" class="item">A2
+        </li>
+    </ul>
+    <ul>
+        <input type="checkbox">B
+        <li>
+            <input type="checkbox" class="item">B0
+        </li>
+        <li>
+            <input type="checkbox" class="item">B1
+        </li>
+        <li>
+            <input type="checkbox" class="item">B2
+        </li>
+    </ul>
+</div>
+<script src="//cdn.bootcss.com/jquery/1.12.0/jquery.min.js"></script>
+<script src="selectTree.js"></script>
+<script>
+    /**
+     * DOM 层级结构非常有局限性，单继承结构
+     */
+    // 检查所有兄弟节点的状态，修改上一级复选框的状态
+    function checkHigherLevel(item) {
+        // 同级复选框，包括自己
+        var sameLevel = $(item).parent().parent().children().children("input[type='checkbox']");
+        for (var i = sameLevel.length - 1; i >= 0; i--) {
+            // 如果同级出现未选中的，好了，不用再继续遍历了
+            if (!$(sameLevel[i]).prop("checked")) {
+                $(item).parent().siblings("input[type='checkbox']").prop("checked", false);
+                return;
+            }
+        }
+        // 没有检查到未选中的，选中上一级复选框
+        $(item).parent().siblings("input[type='checkbox']").prop("checked", true);
+        // 检查上一级复选框的父节点的兄弟节点中是否有复选框
+        if ($(item).parent().parent().siblings().has("input[type='checkbox']")) {
+            $.each($(item).parent().siblings().filter("input[type='checkbox']"), function(key, value) {
+                checkHigherLevel(value);
+            });
+        }
+    }
+    // 修改下一级复选框的状态
+    function checkLowerLevel(item) {
+        // 下一级复选框
+        var lowLevel = $(item).siblings().children("input[type='checkbox']");
+        for (var i = lowLevel.length - 1; i >= 0; i--) {
+            // 修改下一级复选框的状态
+            $(lowLevel[i]).prop("checked", $(item).prop("checked"));
+            if ($(lowLevel[i]).siblings().children().has("input[type='checkbox']")) {
+
+                $.each($(lowLevel[i]).siblings().children("input[type='checkbox']"), function(key, value) {
+                    checkLowerLevel(value);
+                });
+            }
+        }
+    }
+
+    $("input[type='checkbox']").click(function() {
+        checkHigherLevel(this);
+        checkLowerLevel(this);
+    });
+</script>
+</body>
+</html>
