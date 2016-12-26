@@ -3450,3 +3450,560 @@ car2.displayCar();
 ```
 
 ### Using `this` for object references
+
+JavaScript has a special keyword, `this`, that you can use within a method to refer to the current object. For example, suppose you have a function called `validate` that validates an object's `value` property, given the object and the high and low values:
+
+```javascript
+function validate(obj, lowval, hival) {
+    if ((obj.value < lowval) || (obj.value > hival)) {
+        alert("Invalid Valuel");
+    }
+}
+```
+
+Then, you could call `validate` in each form element's `onchange `event handler, using `this` to pass it the element, as in the following example:
+
+```html
+<input type="text" name="age" size="3" onchange="validate(this, 18, 19)">
+```
+
+In general, `this` refers to the calling object in a method.
+
+When combined with the `form` property, `this` can refer to the current object's parent form. In the following example, the form `myForm`contains a `Text` object and a button. When the user clicks the button, the value of the `Text` object is set to the form's name. The button's `onclick` event handler uses `this.form` to refer to the parent form, `myForm`.
+
+```html
+<form name="myForm">
+    <p><label>Form name: <input name="text1" type="text" value="Beluga"></label></p>  
+    <p><input name="button1" type="button" value="Show Form Name" onclick="this.form.text1.value = this.form.name"></p>
+</form>
+```
+
+### Defining getters and setters
+
+A [getter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get) is a method that gets the value of a specific property. A [setter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set) is a method that sets the value of a specific property. You can define getters and setters on any predefined core object or user-defined object that supports the addition of new properties. The syntax for defining getters and setters uses the object literal syntax.
+
+The following illustrates how getters and setters could work for a user-defined object `o`.
+
+```javascript
+var o = {
+    a: 7,
+    get b() {
+        return this.a + 1;
+    },
+    set c(x) {
+        this.a = x / 2;
+    }
+};
+console.log(o.a); // 7
+console.log(o.b); // 8
+o.c = 50;
+console.log(o.a); // 25
+```
+
+The `o` object's properties are:
+
+- `o.a` — a number
+- `o.b` — a getter that returns `o.a` plus 1
+- `o.c` — a setter that sets the value of `o.a` to half of the value `o.c` is being set to
+
+Please note that function names of getters and setters defined in an object literal using "[gs]et *property*()" (as opposed to `__define[GS]etter__` ) are not the names of the getters themselves, even though the `[gs]et *propertyName*(){ }` syntax may mislead you to think otherwise. To name a function in a getter or setter using the "[gs]et *property*()" syntax, define an explicitly named function programmatically using `Object.defineProperty` (or the `Object.prototype.__defineGetter__` legacy fallback).
+
+The following code illustrates how getters and setters can extend the [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) prototype to add a `year` property to all instances of the predefined `Date` class. It uses the `Date` class's existing `getFullYear` and `setFullYear` methods to support the `year` property's getter and setter.
+
+These statements define a getter and setter for the year property:
+
+```javascript
+var d = Date.prototype;
+Object.defineProperty(d, "year", {
+    get: function() {
+        return this.getFullYear();
+    },
+    set: function(y) {
+        this.setFullYear(y);
+    }
+});
+```
+
+These statements use the getter and setter in a `Date` object:
+
+```javascript
+var now = new Date();
+console.log(now.year); // 2016
+now.year = 2017;
+console.log(now); // Tue Dec 26 2017 10:47:12 GMT+0800 (中国 (標準時))
+```
+
+In principle, getters and setters can be either
+
+- defined using [object initializers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects#Using_object_initializers), or
+- added later to any object at any time using a getter or setter adding method.
+
+When defining getters and setters using [object initializers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects#Using_object_initializers) all you need to do is to prefix a getter method with `get` and a setter method with `set`. Of course, the getter method must not expect a parameter, while the setter method expects exactly one parameter (the new value to set). For instance:
+
+```javascript
+var o = {
+    a: 7,
+    get b() {
+        return this.a + 1;
+    },
+    set c(x) {
+        this.a = x / 2;
+    }
+};
+```
+
+Getters and setters can also be added to an object at any time after creation using the `Object.defineProperties` method. This method's first parameter is the object on which you want to define the getter or setter. The second parameter is an object whose property names are the getter or setter names, and whose property values are objects for defining the getter or setter functions. Here's an example that defines the same getter and setter used in the previous example:
+
+```javascript
+var o = {a: 0};
+Object.defineProperties(o, {
+    "b": {
+        get: function() {
+            return this.a + 1;
+        }
+    },
+    "c": {
+        set: function(x) {
+            this.a = x / 2;
+        }
+    }
+});
+o.c = 10;
+console.log(o.b); // 6
+```
+
+Which of the two forms to choose depends on your programming style and task at hand. If you already go for the object initializer when defining a prototype you will probably most of the time choose the first form. This form is more compact and natural. However, if you need to add getters and setters later — because you did not write the prototype or particular object — then the second form is the only possible form. The second form probably best represents the dynamic nature of JavaScript — but it can make the code hard to read and understand.
+
+### Deleting properties
+
+You can remove a non-inherited property by using the `delete` operator. The following code shows how to remove a property.
+
+```javascript
+var myobj = new Object;
+myobj.a = 5;
+myobj.b = 12;
+delete myobj.a; // true
+console.log("a" in myobj); // false
+```
+
+You can also use `delete` to delete a global variable if the `var` keyword was not used to declare the variable:
+
+```javascript
+g = 17;
+delete g; // true
+```
+
+### Comparing Objects
+
+In JavaScript objects are a reference type. Two distinct objects are never equal, even if they have the same properties. Only comparing the same object reference with itself yields true.
+
+```javascript
+// Two variables, two distinct objects with the same properties
+var fruit = {name: "apple"};
+var fruitbear = {name: "apple"};
+fruit == fruitbear; // false
+fruit === fruitbear; // false
+// Two variables, a single object
+fruitbear = fruit; // assign fruit object reference to fruitbear
+fruit == fruitbear; // true
+fruit === fruitbear; // true
+fruit.name = "grape";
+console.log(fruitbear.name); // grape
+```
+
+For more information about comparison operators, see [Comparison operators](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators).
+
+### See also
+
+- To dive deeper, read about the [details of javaScript's objects model](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Details_of_the_Object_Model).
+- To learn about ECMAScript6 classes (a new way to create objects), read the [JavaScript classes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes) chapter.
+
+## Details of the object model
+
+> JavaScript is an object-based language based on prototypes, rather than being class-based. Because of this different basic, it can be less apparent how JavaScript allows you to create hierarchies of objects and to have inheritance of properties and their values.
+
+### Class-based vs. prototype-based languages
+
+Class-based object-oriented languages, such as Java and C++, are founded on the concept of two distinct entities: classes and instances.
+
+- A *class* defines all of the properties (considering methods and fields in Java, or members in C++, to be properties) that characterize a certain set of objects. A class is an abstract thing, rather than any particular member of the set of objects it describes. For example, the `Employee` class could represent the set of all employees.
+
+
+- An *instance*, on the other hand, is the instantiation of a class; that is, one of its members. For example, `Victoria` could be an instance of the `Employee` class, representing a particular individual as an employee. An instance has exactly the same properties of its parent class (no more, no less).
+
+A prototype-based language, such as JavaScript, does not make this distinction: it simply has objects. A prototype-based language has the notion of a *prototypical object*, an object used as a template from which to get the initial properties for a new object. Any object can specify its own properties, either when you create it or at run time. In addition, any object can be associated as the *prototype* for another object, allowing the second object to share the first object's properties.
+
+#### Defining a class
+
+In class-based languages, you define a class in a separate *class definition*. In that definition you can specify special methods, called *constructors*, to create instances of the class. A constructor method can specify initial values for the instance's properties and perform other processing appropriate at creation time. You use the `new` operator in association with the constructor method to create class instances.
+
+JavaScript follows a similar model, but does not have a class definition separate from the constructor. Instead, you define a constructor function to create objects with a particular initial set of properties and values. Any JavaScript function can be used as a constructor. You use the `new` operator with a constructor function to create a new object.
+
+#### Subclasses and inheritance
+
+In a class-based language, you create a hierarchy of classes through the class definitions. In a class definition, you can specify that the new class is a *subclass* of an already existing class. The subclass inherits all the properties of the superclass and additionally can add new properties or modify the inherited ones. For example, assume the `Employee` class includes only the `name` and `dept` properties, and `Manager` is a subclass of `Employee` that adds the `reports` property. In this case, an instance of the `Manager` class would have all three properties: `name`, `dept`, and `reports`.
+
+JavaScript implements inheritance by allowing you to associate a prototypical object with any constructor function. So, you can create exactly the `Employee` — `Manager` example, but you use slightly different terminology. First you define the `Employee` constructor function, specifying the `name` and `dept` properties. Next, you define the `Manager` constructor function, calling the `Empl``oyee` constructor and specifying the `reports` property. Finally, you assign a new object derived from `Employee.prototype` as the `prototype` for the `Manager` constructor function. Then, when you create a new `Manager`, it inherits the `name` and `dept` properties from the `Employee`object.
+
+#### Adding and removing properties
+
+In class-based languages, you typically create a class at compile time and then you instantiate instances of the class either at compile time or at run time. You cannot change the number or the type of properties of a class after you define the class. In JavaScript, however, at run time you can add or remove properties of any object. If you add a property to an object that is used as the prototype for a set of objects, the objects for which it is the prototype also get the new property.
+
+#### Summary of differences
+
+The following table gives a short summary of some of these differences. The rest of this chapter describes the details of using JavaScript constructors and prototypes to create an object hierarchy and compares this to how you would do it in Java.
+
+**Comparison of class-based (Java) and prototype-based (JavaScript) object systems**
+
+| Class-based (Java)                       | Prototype-based (JavaScript)             |
+| ---------------------------------------- | ---------------------------------------- |
+| Class and instance are distinct entities. | All objects can inherit from another object. |
+| Define a class with a class definition; instantiate a class with constructor methods. | Define and create a set of objects with constructor functions. |
+| Create a single object with the `new` operator. | Same.                                    |
+| Construct an object hierarchy by using class definitions to define subclasses of existing classes. | Construct an object hierarchy by assigning an object as the prototype associated with a constructor function. |
+| Inherit properties by following the class chain. | Inherit properties by following the prototype chain. |
+| Class definition specifies *all* properties of all instances of a class. Cannot add properties dynamically at run time. | Constructor function or prototype specifies an *initial set* of properties. Can add or remove properties dynamically to individual objects or to the entire set of objects. |
+
+### The employee example
+
+The remainder of this chapter uses the employee hierarchy shown in the following figure.
+
+A simple object hierarchy with the following objects:
+
+![img](https://mdn.mozillademos.org/files/3060/figure8.1.png)
+
+- `Employee` has the properties `name` (whose value defaults to the empty string) and `dept` (whose value defaults to "general").
+- `Manager` is based on `Employee`. It adds the `reports` property (whose value defaults to an empty array, intended to have an array of `Employee` objects as its value).
+- `WorkerBee` is also based on `Employee`. It adds the `projects` property (whose value defaults to an empty array, intended to have an array of strings as its value).
+- `SalesPerson` is based on `WorkerBee`. It adds the `quota` property (whose value defaults to 100). It also overrides the `dept` property with the value "sales", indicating that all salespersons are in the same department.
+- `Engineer` is based on `WorkerBee`. It adds the `machine` property (whose value defaults to the empty string) and also overrides the `dept` property with the value "engineering".
+
+### Creating the hierarchy
+
+There are several ways to define appropriate constructor functions to implement the Employee hierarchy. How you choose to define them depends largely on what you want to be able to do in your application.
+
+This section shows how to use very simple (and comparatively inflexible) definitions to demonstrate how to get the inheritance to work. In these definitions, you cannot specify any property values when you create an object. The newly-created object simply gets the default values, which you can change at a later time.
+
+In a real application, you would probably define constructors that allow you to provide property values at object creation time (see [More flexible constructors](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Details_of_the_Object_Model#More_flexible_constructors) for information). For now, these simple definitions demonstrate how the inheritance occurs.
+
+The following Java and JavaScript `Employee` definitions are similar. The only difference is that you need to specify the type for each property in Java but not in JavaScript (this is due to Java being a [strongly typed language](http://en.wikipedia.org/wiki/Strong_and_weak_typing) while JavaScript is a weakly typed language).
+
+```javascript
+function Employee() {
+    this.name = "";
+    this.dept = "general";
+}
+```
+
+```java
+public class Employee {
+    public String name = "";
+    public String dept = "general";
+}
+```
+
+The `Manager` and `WorkerBee` definitions show the difference in how to specify the next object higher in the inheritance chain. In JavaScript, you add a prototypical instance as the value of the `prototype` property of the constructor function. You can do so at any time after you define the constructor. In Java, you specify the superclass within the class definition. You cannot change the superclass outside the class definition.
+
+```javascript
+function Manager() {
+    Employee.call(this);
+    this.reports = [];
+}
+Manager.prototype = Object.create(Employee.prototype);
+
+function WorkerBee() {
+    Employee.call(this);
+    this.projects = [];
+}
+WorkerBee.prototype = Object.create(Employee.prototype);
+```
+
+```java
+public class Manager extends Employee {
+    public Employee[] reports = new Employee[0];
+}
+
+public class WorkerBee extends Employee {
+    public String[] projects = new String[0];
+}
+```
+
+The `Engineer` and `SalesPerson` definitions create objects that descend from `WorkerBee` and hence from `Employee`. An object of these types has properties of all the objects above it in the chain. In addition, these definitions override the inherited value of the `dept`property with new values specific to these objects.
+
+```javascript
+function SalesPerson() {
+    WorkerBee.call(this);
+    this.dept = "sales";
+    this.quota = 100;
+}
+SalesPerson.prototype = Object.create(WorkerBee.prototype);
+
+function Engineer() {
+    WorkerBee.call(this);
+    this.dept = "engineering";
+    this.machine = "";
+}
+Engineer.prototype = Object.create(WorkerBee.prototype);
+```
+
+```java
+public class SalesPerson extends WorkerBee {
+    public String dept = "sales";
+    public double quota = 100.0；
+}
+
+public class Engineer extends WorkerBee {  
+    public String dept = "engineering";
+    public String machine = ""
+}
+```
+
+Using these definitions, you can create instances of these objects that get the default values for their properties. The next figure illustrates using these JavaScript definitions to create new objects and shows the property values for the new objects.
+
+**Note:** The term *instance* has a specific technical meaning in class-based languages. In these languages, an instance is an individual instantiation of a class and is fundamentally different from a class. In JavaScript, "instance" does not have this technical meaning because JavaScript does not have this difference between classes and instances. However, in talking about JavaScript, "instance" can be used informally to mean an object created using a particular constructor function. So, in this example, you could informally say that `jane` is an instance of `Engineer`. Similarly, although the terms *parent, child, ancestor*, and *descendant* do not have formal meanings in JavaScript; you can use them informally to refer to objects higher or lower in the prototype chain.
+
+#### Creating objects with simple definitions
+
+##### Object hierarchy
+
+The following hierarchy is created using the code on the right side.
+
+![img](https://mdn.mozillademos.org/files/10412/=figure8.3.png)
+
+##### individual objects
+
+```javascript
+var jim = new Employee;
+var sally = new Manager;
+var mark = new WorkerBee;
+var fred = new SalesPerson;
+var jane = new Engineer;
+```
+
+### Object properties
+
+This section discusses how objects inherit properties from other objects in the prototype chain and what happens when you add a property at run time.
+
+#### Inheriting properties
+
+Suppose you create the `mark` object as a `WorkerBee` with the following statement:
+
+```javascript
+var mark = new WorkerBee;
+```
+
+When JavaScript sees the `new` operator, it creates a new generic object and passes this new object as the value of the `this` keyword to the `WorkerBee` constructor function. The constructor function explicitly sets the value of the `projects` property, and implicitly sets the value of the internal `__proto__` property to the value of `WorkerBee.prototype`. (That property name has two underscore characters at the front and two at the end.) The `__proto__` property determines the prototype chain used to return property values. Once these properties are set, JavaScript returns the new object and the assignment statement sets the variable `mark` to that object.
+
+This process does not explicitly put values in the `mark` object (*local* values) for the properties that `mark` inherits from the prototype chain. When you ask for the value of a property, JavaScript first checks to see if the value exists in that object. If it does, that value is returned. If the value is not there locally, JavaScript checks the prototype chain (using the `__proto__` property). If an object in the prototype chain has a value for the property, that value is returned. If no such property is found, JavaScript says the object does not have the property. In this way, the `mark` object has the following properties and values:
+
+```javascript
+mark.name = "";
+mark.dept = "general";
+mark.projects = [];
+```
+
+The `mark` object inherits values for the `name` and `dept` properties from the prototypical object in `mark.__proto__`. It is assigned a local value for the `projects` property by the `WorkerBee` constructor. This gives you inheritance of properties and their values in JavaScript. Some subtleties of this process are discussed in [Property inheritance revisited](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Details_of_the_Object_Model#Property_inheritance_revisited).
+
+Because these constructors do not let you supply instance-specific values, this information is generic. The property values are the default ones shared by all new objects created from `WorkerBee`. You can, of course, change the values of any of these properties. So, you could give specific information for `mark` as follows:
+
+```javascript
+mark.name = "Doe, Mark";
+mark.dept = "admin";
+mark.projects = ["navigator"];
+```
+
+#### Adding properties
+
+In JavaScript, you can add properties to any object at run time. You are not constrained to use only the properties provided by the constructor function. To add a property that is specific to a single object, you assign a value to the object, as follows:
+
+```
+mark.bonus = 3000;
+```
+
+Now, the `mark` object has a `bonus` property, but no other `WorkerBee` has this property.
+
+If you add a new property to an object that is being used as the prototype for a constructor function, you add that property to all objects that inherit properties from the prototype. For example, you can add a `specialty` property to all employees with the following statement:
+
+```javascript
+Employee.prototype.specialty = "none";
+```
+
+As soon as JavaScript executes this statement, the `mark` object also has the `specialty` property with the value of `"none"`. The following figure shows the effect of adding this property to the `Employee` prototype and then overriding it for the `Engineer` prototype.
+
+![img](https://developer.mozilla.org/@api/deki/files/4422/=figure8.4.png)
+**Adding properties**
+
+### More flexible constructors
+
+The constructor functions shown so far do not let you specify property values when you create an instance. As with Java, you can provide arguments to constructors to initialize property values for instances. The following figure shows one way to do this.
+
+![img](https://developer.mozilla.org/@api/deki/files/4423/=figure8.5.png)**Specifying properties in a constructor, take 1**
+
+The following table shows the Java and JavaScript definitions for these objects.
+
+```javascript
+function Employee(name, dept) {
+    this.name = name || "";
+    this.dept = dept || "general";
+}
+
+function WorkerBee(projs) {
+    this.projects = projs || [];
+}
+WorkerBee.prototype = new Employee;
+
+function Engineer(mach) {
+    this.dept = "engineering";
+    this.machine = mach || "";
+}
+Engineer.prototype = new WorkerBee;
+```
+
+```java
+class Employee {
+    public String name;
+    public String dept;
+    public Employee() {
+        this("", "general");
+    }
+    public Employee(String name) {
+        this(name, "general");
+    }
+    public Employee(String name, String dept) {
+        this.name = name;
+        this.dept = dept;
+    }
+}
+class WorkerBee extends Employee {
+    public String[] projects;
+    public WorkerBee() {
+        this(new String[0]);
+    }
+    public WorkerBee(String[] projs) {
+        this.projects = projs;
+    }
+}
+class Engineer extends WorkerBee {
+    public String machine;
+    public Engineer() {
+        this.dept = "engineering";
+        this.machine = "";
+    }
+    public Engineer(String mach) {
+        this.dept = "engineering";
+        this.machine = mach;
+    }
+}
+```
+
+These JavaScript definitions use a special idiom for setting default values:
+
+The JavaScript logical OR operator (`||`) evaluates its first argument. If that argument converts to true, the operator returns it. Otherwise, the operator returns the value of the second argument. Therefore, this line of code tests to see if `name` has a useful value for the `name` property. If it does, it sets `this.name` to that value. Otherwise, it sets `this.name` to the empty string. This chapter uses this idiom for brevity; however, it can be puzzling at first glance.
+
+**Note:** This may not work as expected if the constructor function is called with arguments which convert to `false` (like `0` (zero) and empty string (`""`). In this case the default value will be chosen.
+
+With these definitions, when you create an instance of an object, you can specify values for the locally defined properties. You can use the following statement to create a new `Engineer`:
+
+```javascript
+var jane = new Engineer("belau");
+```
+
+`Jane`'s properties are now:
+
+```javascript
+jane.name == "";
+jane.dept == "engineering";
+jane.projects == [];
+jane.machine == "belau";
+```
+
+Notice that with these definitions, you cannot specify an initial value for an inherited property such as `name`. If you want to specify an initial value for inherited properties in JavaScript, you need to add more code to the constructor function.
+
+So far, the constructor function has created a generic object and then specified local properties and values for the new object. You can have the constructor add more properties by directly calling the constructor function for an object higher in the prototype chain. The following figure shows these new definitions.
+
+![img](https://developer.mozilla.org/@api/deki/files/4430/=figure8.6.png)
+
+**Specifying properties in a constructor, take 2**
+
+Let's look at one of these definitions in detail. Here's the new definition for the `Engineer` constructor:
+
+```javascript
+function Engineer(name, projs, mach) {
+    this.base = WorkerBee;
+    this.base(name, "engineering", projs);
+    this.machine = mach || "";
+}
+```
+
+Suppose you create a new `Engineer` object as follows:
+
+```javascript
+var jane = new Engineer("Doe, Jane", ["navigator", "javascript"], "belau");
+```
+
+JavaScript follows these steps:
+
+1. The `new` operator creates a generic object and sets its `__proto__` property to `Engineer.prototype`.
+2. The `new` operator passes the new object to the `Engineer` constructor as the value of the `this` keyword.
+3. The constructor creates a new property called `base` for that object and assigns the value of the `WorkerBee` constructor to the `base` property. This makes the `WorkerBee` constructor a method of the `Engineer` object. The name of the ` base` property is not special. You can use any legal property name; `base` is simply evocative of its purpose.
+4. The constructor calls the `base` method, passing as its arguments two of the arguments passed to the constructor (`"Doe, Jane"` and `["navigator", "javascript"]`) and also the string `"engineering"`. Explicitly using `"engineering"` in the constructor indicates that all `Engineer` objects have the same value for the inherited `dept` property, and this value overrides the value inherited from `Employee`.
+5. Because `base` is a method of `Engineer`, within the call to `base`, JavaScript binds the `this` keyword to the object created in Step 1. Thus, the `WorkerBee` function in turn passes the `"Doe, Jane"` and `"engineering"` arguments to the `Employee` constructor function. Upon return from the `Employee` constructor function, the `WorkerBee` function uses the remaining argument to set the `projects` property.
+6. Upon return from the `base` method, the `Engineer` constructor initializes the object's `machine` property to `"belau"`.
+7. Upon return from the constructor, JavaScript assigns the new object to the `jane` variable.
+
+You might think that, having called the `WorkerBee` constructor from inside the `Engineer` constructor, you have set up inheritance appropriately for `Engineer` objects. This is not the case. Calling the `WorkerBee` constructor ensures that an `Engineer` object starts out with the properties specified in all constructor functions that are called. However, if you later add properties to the `Employee` or `WorkerBee` prototypes, those properties are not inherited by the `Engineer` object. For example, assume you have the following statements:
+
+```javascript
+function Engineer(name, projs, mach) {
+    this.base = WorkerBee;
+    this.base(name, "engineering", projs);
+    this.machine = mach || "";
+}
+var jane = new Engineer("Doe, Jane", ["navigator", "javascript"], "belau");
+Employee.prototype.specialty = "none";
+```
+
+The `jane` object does not inherit the `specialty` property. You still need to explicitly set up the prototype to ensure dynamic inheritance. Assume instead you have these statements:
+
+```javascript
+function Engineer(name, projs, mach) {
+    this.base = WorkerBee;
+    this.base(name, "engineering", projs);
+    this.machine = mach || "";
+}
+Engineer.prototype = new WorkerBee;
+var jane = new Engineer("Doe, Jane", ["navigator", "javascript"], "belau");
+Employee.prototype.specialty = "none";
+```
+
+Now the value of the `jane` object's `specialty` property is "none".
+
+Another way of inheriting is by using the `call()` / [`apply()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply) methods. Below are equivalent:
+
+```javascript
+function Engineer(name, projs, mach) {
+    this.base = WorkerBee;
+    this.base(name, "engineering", projs);
+    this.machine = mach || "";
+}
+/*************************************/
+function Engineer(name, projs, mach) {
+    WorkerBee.call(this, name, "engineering", projs);
+    this.machine = mach || "";
+}
+```
+
+Using the javascript `call()` method makes a cleaner implementation because the `base` is not needed anymore.
+
+### Property inheritance revisited
+
+The preceding sections described how JavaScript constructors and prototypes provide hierarchies and inheritance. This section discusses some subtleties that were not necessarily apparent in the earlier discussions.
+
+#### Local versus inherited values
+
+When you access an object property, JavaScript performs these steps, as described earlier in this chapter:
+
+1. Check to see if the value exists locally. If it does, return that value.
+2. If there is not a local value, check the prototype chain (using the `__proto__` property).
+3. If an object in the prototype chain has a value for the specified property, return that value.
+4. If no such property is found, the object does not have the property.
