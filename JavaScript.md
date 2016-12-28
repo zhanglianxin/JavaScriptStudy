@@ -4007,3 +4007,112 @@ When you access an object property, JavaScript performs these steps, as describe
 2. If there is not a local value, check the prototype chain (using the `__proto__` property).
 3. If an object in the prototype chain has a value for the specified property, return that value.
 4. If no such property is found, the object does not have the property.
+
+
+The outcome of these steps depends on how you define things along the way. The original example had these definitions:
+
+```javascript
+function Employee() {
+    this.name = "";
+    this.dept = "general";
+}
+function WorkerBee() {
+    this.projects = [];
+}
+WorkerBee.prototype = new Employee;
+```
+
+With these definitions, suppose you create `amy` as an instance of `WorkerBee` with the following statement:
+
+```javascript
+var amy = new WorkerBee;
+```
+
+The `amy` object has one local property, `projects`. The values for the `name` and `dept` properties are not local to `amy` and so derive from the `amy` object's `__proto__` property. Thus, `amy` has these property values:
+
+```javascript
+amy.name == ""
+amy.dept == "general";
+amy.projects == [];
+```
+
+Now suppose you change the value of the `name` property in the prototype associated with `Employee`:
+
+```javascript
+Employee.prototype.name = "Unknown";
+```
+
+At first glance, you might expect that new value to propagate down to all the instances of `Employee`. However, it does not.
+
+When you create *any* instance of the `Employee` object, that instance gets a **local value** for the `name` property (the empty string). This means that when you set the `WorkerBee` prototype by creating a new `Employee` object, `WorkerBee.prototype` has a local value for the `name` property. Therefore, when JavaScript looks up the `name` property of the `amy` object (an instance of `WorkerBee`), JavaScript finds the local value for that property in `WorkerBee.prototype`. It therefore does not look further up the chain to `Employee.prototype`.
+
+If you want to change the value of an object property at run time and have the new value be inherited by all descendants of the object, you cannot define the property in the object's constructor function. Instead, you add it to the constructor's associated prototype. For example, assume you change the preceding code to the following:
+
+```javascript
+function Employee() {
+    this.dept = "general";
+}
+Employee.prototype.name = "";
+function WorkerBee() {
+    this.projects = [];
+}
+WorkerBee.prototype = new Employee;
+var amy = new WorkerBee;
+Employee.prototype.name = "Unknown";
+```
+
+In this case, the `name` property of `amy` becomes "Unknown".
+
+As these examples show, if you want to have default values for object properties and you want to be able to change the default values at run time, you should set the properties in the constructor's prototype, not in the constructor function itself.
+
+#### Determining instance relationships
+
+Property lookup in JavaScript looks within an object's own properties and, if the property name is not found, it looks within the special object property `__proto__`. This continues recursively; the process is called "lookup in the prototype chain".
+
+The special property `__proto__` is set when an object is constructed; it is set to the value of the constructor's `prototype` property. So the expression `new Foo()` creates an object with `__proto__ == Foo.prototype`. Consequently, changes to the properties of `Foo.prototype` alters the property lookup for all objects that were created by `new Foo()`.
+
+Every object has a `__proto__` object property (except `Object`); every function has a `prototype` object property. So objects can be related by 'prototype inheritance' to other objects. You can test for inheritance by comparing an object's `__proto__` to a function's `prototype` object. JavaScript provides a shortcut: the `instanceof` operator tests an object against a function and returns true if the object inherits from the function prototype. For example,
+
+```javascript
+var f = new Foo();
+var isTrue = (f instanceof Foo);
+```
+
+For a more detailed example, suppose you have the same set of definitions shown in [Inheriting properties](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Details_of_the_Object_Model#Inheriting_properties). Create an `Engineer` object as follows:
+
+```javascript
+var chris = new Engineer("Pigman, Chris", ["jsd"], "fiji");
+```
+
+With this object, the following statements are all true:
+
+```javascript
+chris.__proto__ == Engineer.prototype;
+chris.__proto__.__proto__ == WorkerBee.prototype;
+chris.__proto__.__proto__.__proto__ == Employee.prototype;
+chris.__proto__.__proto__.__proto__.__proto__ == Object.prototype;
+chris.__proto__.__proto__.__proto__.__proto__.__proto__ == null;
+```
+
+Given this, you could write an `instanceOf` function as follows:
+
+```javascript
+function instanceOf(object, constructor) {
+    object = object.__proto__;
+    while (object != null) {
+        if (object == constructor.prototype) {
+            return true;
+        }
+        if (typeof object == "xml") {
+            return constructor.prototype == XML.prototype;
+        }
+        object = object.__proto__;
+    }
+    return false;
+}
+```
+
+**Note:** The implementation above checks the type of the object against "xml" in order to work around a quirk of how XML objects are represented in recent versions of JavaScript. See [bug 634150](https://bugzilla.mozilla.org/show_bug.cgi?id=634150) if you want the nitty-gritty details.
+
+Using the instanceOf function defined above, these expressions are true:
+
