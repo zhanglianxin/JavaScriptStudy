@@ -4116,3 +4116,376 @@ function instanceOf(object, constructor) {
 
 Using the instanceOf function defined above, these expressions are true:
 
+```javascript
+instanceOf(chris, Engineer);
+instanceOf(chris, WorkerBee);
+instanceOf(chris, Employee);
+instanceOf(chris, Object);
+```
+
+But the following expression is false:
+
+```javascript
+instanceOf(chris, SalesPerson);
+```
+
+#### Global information in constructors
+
+When you create constructors, you need to be careful if you set global information in the constructor. For example, assume that you want a unique ID to be automatically assigned to each new employee. You could use the following definition for `Employee` :
+
+```javascript
+var idCounter = 1;
+function Employee(name, dept) {
+    this.name = name || "";
+    this.dept = dept || "general";
+    this.id = idCouter++;
+}
+```
+
+With this definition, when you create a new `Employee`, the constructor assigns it the next ID in sequence and then increments the global ID counter. So, if your next statement is the following, `victoria.id` is 1 and `harry.id` is 2:
+
+```javascript
+var victoria = new Employee("Pigbert, Victoria", "pubs");
+var harry = new Employee("Tschopik, Harry", "sales");
+```
+
+At first glance that seems fine. However, `idCounter` gets incremented every time an `Employee` object is created, for whatever purpose. If you create the entire `Employee` hierarchy shown in this chapter, the `Employee` constructor is called every time you set up a prototype. Suppose you have the following code:
+
+```javascript
+var idCounter = 1;
+function Employee(name, dept) {
+    this.name = name || "";
+    this.dept = dept || "general";
+    this.id = idCouter++;
+}
+function Manager(name, dept, reports) {
+    //...
+}
+Manager.prototype = new Employee;
+function WorkerBee(name, dept, projs) {
+    //...
+}
+WorkerBee.prototype = new Employee;
+function Engineer(name, projs, mach) {
+    //...
+}
+Engineer.prototype = new WorkerBee;
+function SalesPerson(name, projs, quota) {
+    //...
+}
+SalesPerson.prototype = new WorkerBee;
+var mac = new Engineer("Wood, Mac");
+```
+
+Further assume that the definitions omitted here have the `base` property and call the constructor above them in the prototype chain. In this case, by the time the `mac` object is created, `mac.id` is 5.
+
+Depending on the application, it may or may not matter that the counter has been incremented these extra times. If you care about the exact value of this counter, one possible solution involves instead using the following constructor:
+
+```javascript
+function Employee(name, dept) {
+    this.name = name || "";
+    this.dept = dept || "general";
+    if (name) {
+        this.id = idCounter++;
+    }
+}
+```
+
+When you create an instance of `Employee` to use as a prototype, you do not supply arguments to the constructor. Using this definition of the constructor, when you do not supply arguments, the constructor does not assign a value to the id and does not update the counter. Therefore, for an `Employee` to get an assigned id, you must specify a name for the employee. In this example, `mac.id` would be 1.
+
+#### No multiple inheritance
+
+Some object-oriented languages allow multiple inheritance. That is, an object can inherit the properties and values from unrelated parent objects. JavaScript does not support multiple inheritance.
+
+Inheritance of property values occurs at run time by JavaScript searching the prototype chain of an object to find a value. Because an object has a single associated prototype, JavaScript cannot dynamically inherit from more than one prototype chain.
+
+In JavaScript, you can have a constructor function call more than one other constructor function within it. This gives the illusion of multiple inheritance. For example, consider the following statements:
+
+```javascript
+function Hobbyist(hobby) {
+    this.hobby = hobby || "scuba";
+}
+function Engineer(name, projs, mach, hobby) {
+    this.base1 = WorkerBee;
+    this.base1(name, "engineering", projs);
+    this.base2 = Hobbyist;
+    this.base2(hobby);
+    this.machine = mach || "";
+}
+Engineer.prototype = new WorkerBee;
+var dennis = new Engineer("Doe, Dennis", ["collabra"], "hugo");
+```
+
+Further assume that the definition of `WorkerBee` is as used earlier in this chapter. In this case, the `dennis` object has these properties:
+
+```javascript
+dennis.name == "Doe, Dennis";
+dennis.dept == "engineering";
+dennis.projects == ["collabra"];
+dennis.machine == "hugo";
+dennis.hobby == "scuba";
+```
+
+So `dennis` does get the `hobby` property from the `Hobbyist` constructor. However, assume you then add a property to the `Hobbyist` constructor's prototype:
+
+```javascript
+Hobbyist.prototype.quipment = ["mask", "fins", "regulator", "bcd"];
+```
+
+The `dennis` object does not inherit this new property.
+
+## Iterators and generators
+
+> Processing each of the items in a collection is a very common operation. JavaScript provides a number of ways of iterating over a collection, from simple [`for`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for) loops to [`map()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map) and [`filter()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter). Iterators and Generators bring the concept of iteration directly into the core language and provide a mechanism for customizing the behavior of [`for...of`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of) loops.
+
+### Iterators
+
+An object is an **iterator** when it knows how to access items from a collection one at a time, while keeping track of its current position within that sequence. In JavaScript an iterator is an object that provides a `next()` method which returns the next item in the sequence. This method returns an object with two properties: `done` and `value` .
+
+Once created, an iterator object can be used explicitly by repeatedly calling `next()`.
+
+```javascript
+function makeIterator(array) {
+    var nextIndex = 0;
+    return {
+        next: function() {
+            return nextIndex < array.length ? {
+                value : array[nextIndex++],
+                done: false
+            } : {
+                done: true
+            };
+        }
+    };
+}
+```
+
+Once initialized, the `next()` method can be called to access key-value pairs from the object in turn:
+
+```javascript
+var it = makeIterator(["yo", "ya"]);
+console.log(it.next().value); // yo
+console.log(it.next().value); // ya
+console.log(it.next().done); // true
+```
+
+### Generators
+
+While custom iterators are a useful tool, their creation requires careful programming due to the need to explicitly maintain their internal state. **Generators** provide a powerful alternative: they allow you to define an iterative algorithm by writing a single function which can maintain its own state.
+
+A generator is a special type of function that works as a factory for iterators. A function becomes a generator if it contains one or more [`yield`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield) expressions and if it uses the [`function*`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*) syntax.
+
+```javascript
+function* idMaker() {
+    var index = 0;
+    while (true) {
+        yield index++;
+    }
+    var gen = idMaker();
+    console.log(gen.next().value); // 0
+    console.log(gen.next().value); // 1
+    console.log(gen.next().value); // 2
+}
+```
+
+### Iterables
+
+An object is **iterable** if it defines its iteration behavior, such as what values are looped over in a [`for..of`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of) construct. Some built-in types, such as [`Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) or [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) , have a default iteration behavior, while other types (such as [`Object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)) do not.
+
+In order to be **iterable**, an object must implement the **@@iterator** method, meaning that the object (or one of the objects up its [prototype chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Inheritance_and_the_prototype_chain)) must have a property with a [`Symbol.iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/iterator) key:
+
+#### User-defined iterables
+
+We can make our own iterables like this:
+
+```javascript
+var myIterable = {};
+myIterable[Symbol.iterator] = function* () {
+    yield 1;
+    yield 2;
+    yield 3;
+};
+for (let value of myIterable) {
+    console.log(value);
+}
+// 1
+// 2
+// 3
+[...myIterable] // [1, 2, 3] // incredible!
+```
+
+#### Built-in iterables
+
+[`String`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) , [`Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) , [`TypedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray) , [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) and [`Set`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) are all built-in iterables, because the prototype objects of them all have a [`Symbol.iterator`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/iterator) method.
+
+#### Syntaxes expecting iterables
+
+Some statements and expressions are expecting iterables, for example the [`for-of`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of) loops, [spread operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_operator) , [`yield* `](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield*) , and [destructuring assignment](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment) .
+
+```javascript
+for (let value of ["a", "b", "c"]) {
+    console.log(value);
+}
+// a
+// b
+// c
+[..."abc"] // ["a", "b", "c"]
+function* gen() {
+    yield* ["a", "b", "c"]
+}
+gen().next(); // Object {value: "a", done: false}
+[a, b, c] = new Set(["a", "b", "c"]);
+a; // "a"
+```
+
+### Advanced generators
+
+Generators compute their yielded values on demand, which allows them to efficiently represent sequences that are expensive to compute, or even infinite sequences as demonstrated above.
+
+The [`next()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/next) method also accepts a value which can be used to modify the internal state of the generator. A value passed to `next()` will be treated as the result of the last `yield` expression that paused the generator.
+
+Here is the fibonacci generator using `next(x)` to restart the sequence:
+
+```javascript
+function* fibonacci() {
+    var fn1 = 0, fn2 = 1;
+    while (true) {
+        var current = fn1;
+        fn1 = fn2;
+        fn2 = current + fn1;
+        var reset = yield current;
+        if (reset) {
+            fn1 = 0;
+            fn2 = 1;
+        }
+    }
+}
+var sequence = fibonacci();
+console.log(sequence.next().value); // 0
+console.log(sequence.next().value); // 1
+console.log(sequence.next().value); // 1
+console.log(sequence.next().value); // 2
+console.log(sequence.next().value); // 3
+console.log(sequence.next().value); // 5
+console.log(sequence.next().value); // 8
+console.log(sequence.next(true).value); // 0
+console.log(sequence.next().value); // 1
+console.log(sequence.next().value); // 1
+console.log(sequence.next().value); // 2
+```
+
+**Note:** As a point of interest, calling `next(undefined)` is equivalent to calling `next()` . However, starting a newborn generator with any value other than undefined when calling `next()` will result in a `TypeError` exception.
+
+You can force a generator to throw an exception by calling its [`throw()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/throw) method and passing the exception value it should throw. This exception will be thrown from the current suspended context of the generator, as if the `yield` that is currently suspended were instead a `throw value` statement.
+
+If a `yield` is not encountered during the processing of the thrown exception, then the exception will propagate up through the call to `throw() `, and subsequent calls to `next()` will result in the `done` property being `true` .
+
+Generators have a [`return(value)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/return) method that returns the given value and finishes the generator itself.
+
+## Meta programming
+
+> Starting with ECMAScript 6, JavaScript gains support for the [`Proxy`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) and [`Reflect`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) objects allowing you to intercept and define custom behavior for fundamental language operations (e.g. property lookup, assignment, enumeration, function invocation, etc). With the help of these two objects you are able to program at the meta level of JavaScript.
+
+### Proxies
+
+Introduced in ECMAScript 6, [`Proxy`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) objects allow you to intercept certain operations and to implement custom behaviors. For example getting a property on an object:
+
+```javascript
+var handler = {
+    get: function(target, name) {
+        return name in target ? target[name] : 42;
+    }
+};
+var p = new Proxy({}, handler);
+p.a = 1;
+console.log(p.a, p.b); // 1 42
+```
+
+The `Proxy` object defines a *target* (an object here) and a *handler* object in which a `get` *trap* is implemented. Here, an object that is proxied will not return `undefined` when getting undefined properties, but will instead return the number 42.
+
+Additional examples are available on the [`Proxy`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) reference page.
+
+#### Terminology
+
+The following terms are used when talking about the functionality of proxies.
+
+**[handler](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/handler)**
+
+Placeholder object which contains traps.
+
+**traps**
+
+The methods that provide property access. This is analogous to the concept of traps in operating systems.
+
+**target**
+
+Object which the proxy virtualizes. It is often used as storage backend for the proxy. Invariants (semantics that remain unchanged) regarding object non-extensibility or non-configurable properties are verified against the target.
+
+**invariants**
+
+Semantics that remain unchanged when implementing custom operations are called *invariants*. If you violate the invariants of a handler, a [`TypeError`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError) will be thrown.
+
+### [Handlers and traps](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Meta_programming#Handlers_and_traps)
+
+The following table summarizes the available traps available to `Proxy` objects. See the [reference pages](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/handler) for detailed explanations and examples.
+
+### Revocable `Proxy`
+
+The [`Proxy.revocable()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/revocable) method is used to create a revocable `Proxy` object. This means that the proxy can be revoked via the function `revoke` and switches the proxy off. Afterwards, any operation leads on the proxy leads to a [`TypeError`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError).
+
+```javascript
+var revocable = Proxy.revocable({}, {
+    get: function(target, name) {
+        return "[[" + name + "]]";
+    }
+});
+var proxy = revocable.proxy;
+console.log(proxy.foo); // [[foo]]
+revocable.revoke();
+console.log(proxy.foo); // Uncaught TypeError
+proxy.foo = 1; // Uncaught TypeError
+delete proxy.foo; // Uncaught TypeError
+typeof proxy; // "object" // typeof doesn't trigger any trap
+```
+
+### Reflection
+
+[`Reflect`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect) is a built-in object that provides methods for interceptable JavaScript operations. The methods are the same as those of the [proxy handlers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/handler) . `Reflect` is not a function object.
+
+`Reflect` helps with forwarding default operations from the handler to the target.
+
+With [`Reflect.has()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/has) for example, you get the [`in` operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/in) as a function:
+
+```javascript
+Reflect.has(Object, "assign"); // true
+```
+
+#### A better `apply` function
+
+In ES5, you typically use the [`Function.prototype.apply()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply) method to call a function with a given `this` value and `arguments` provided as an array (or an [array-like object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Indexed_collections#Working_with_array-like_objects)).
+
+```javascript
+Function.prototype.apply.call(Math.floor, undefined, [1.75]); // 1
+```
+
+With [`Reflect.apply`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply) this becomes less verbose and easier to understand:
+
+```javascript
+Reflect.apply(Math.floor, undefined, [1.75]); // 1
+Reflect.apply(String.fromCharCode, undefined, [104, 101, 108, 108, 111]); // "hello"
+Reflect.apply(RegExp.prototype.exec, /ab/, ["confabulation"]).index; // 4
+Reflect.apply("".charAt, "ponines", [3]); // i
+```
+
+#### Checking if property definition has been successful
+
+With [`Object.defineProperty`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty), which returns an object if successful, or throws a [`TypeError`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError) otherwise, you would use a [`try...catch`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch)block to catch any error that occurred while defining a property. Because [`Reflect.defineProperty`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/defineProperty) returns a Boolean success status, you can just use an [`if...else`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else) block here:
+
+```javascript
+if (Reflect.defineProperty(target, property, attributes)) {
+    // success
+} else {
+    // failure
+}
+```
+
