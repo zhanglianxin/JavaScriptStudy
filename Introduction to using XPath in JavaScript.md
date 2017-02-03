@@ -16,7 +16,7 @@ var xpathResult = document.evaluate(xpathExpression, contextNode, namespaceResol
 
 [evaluate](https://developer.mozilla.org/en-US/docs/Web/API/Document.evaluate) 函数共有五个参数：
 
-- `xpathExpression`：包含要评估的 XPath 表达式的字符串.
+- `xpathExpression`：包含要评估的 XPath 表达式的字符串。
 - `contextNode`：应评估 `xpathExpression` 的文档中的节点，包括其任何和所有子节点。document 节点是最常用的。
 
 - `namespaceResolver`：将传递包含在 `xpathExpression` 中的任何命名空间前缀的函数，它返回一个表示与该前缀关联的命名空间 URI 的字符串。这使得能够在 XPath 表达式中使用的前缀和文档中使用的可能不同的前缀之间进行转换。该转换函数可以是：
@@ -29,7 +29,7 @@ var xpathResult = document.evaluate(xpathExpression, contextNode, namespaceResol
 
 ### 返回值
 
-返回 `xpathResult`，它是 `resultType` 参数中[指定的](https://developer.mozilla.org/en-US/docs/Introduction_to_using_XPath_in_JavaScript#Specifying_the_Return_Type)类型的 `XPathResult` 对象。`XPathResult` 在[这里](http://mxr.mozilla.org/mozilla-central/source/dom/interfaces/xpath/nsIDOMXPathResult.idl)定义.
+返回 `xpathResult`，它是 `resultType` 参数中[指定的](https://developer.mozilla.org/en-US/docs/Introduction_to_using_XPath_in_JavaScript#Specifying_the_Return_Type)类型的 `XPathResult` 对象。`XPathResult` 在[这里](http://mxr.mozilla.org/mozilla-central/source/dom/interfaces/xpath/nsIDOMXPathResult.idl)定义。
 
 ### 实现默认的命名空间解析器
 
@@ -65,9 +65,9 @@ var nsResolver = document.createNSResolver(contextNode.ownerDocument == null ? c
 - `stringValue`
 - `booleanValue`
 
-##### 例
+##### 示例
 
-以下使用 XPath 表达式 `count(//p)` 来获取 HTML 文档中的 `<p>` 元素数：
+以下使用 XPath 表达式 [`count(//p)`](https://developer.mozilla.org/en-US/docs/XPath/Functions/count) 来获取 HTML 文档中的 `<p>` 元素数：
 
 ```javascript
 var paragraphCount = document.evaluate('count(//p)', document, null, XPathResult.ANY_TYPE, null);
@@ -99,3 +99,231 @@ alert('This document contains ' + paragraphCount.stringValue + ' paragraph eleme
 - `ORDERED_NODE_ITERATOR_TYPE`
 
 返回的 `XPathResult` 对象是一个匹配节点的节点集，它将作为迭代器，允许我们使用 `XPathResult` 的 `iterateNext()` 方法访问包含的各个节点。
+
+一旦迭代完成所有的匹配节点，`iterateNext()` 将返回 `null`。
+
+但请注意，如果在迭代过程中，文档发生突变（文档树被修改），将使迭代无效，并且 `XPathResult` 的 `invalidIteratorState` 属性设置为 `true`，抛出 `NS_ERROR_DOM_INVALID_STATE_ERR` 异常。
+
+*Iterator Example*
+
+```javascript
+var iterator = document.evaluate('//phoneNumber', documentNode, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+try {
+    while (thisNode = iterator.iterateNext()) {
+        alert(thisNode.textContent);
+    }
+} catch (e) {
+    dump('Error: Document tree modified during iteration ' + e);
+}
+```
+
+##### Snapshots
+
+当 `resultType` 参数中的指定结果类型为：
+
+- `UNORDERED_NODE_SNAPSHOT_TYPE`
+- `ORDERED_NODE_SNAPSHOT_TYPE`
+
+返回的 `XPathResult` 对象是一个匹配节点的静态节点集，这允许我们通过 `XPathResult` 对象的 `snapshotItem(itemNumber)` 方法访问每个节点，其中 `itemNumber` 是要检索的节点的索引。包含的节点总数可以通过 `snapshotLength` 属性访问。
+
+快照不随文档突变而改变，因此与迭代器不同，快照不会变得无效，但是它可能不对应于当前文档，例如节点可能已被移动，它可能包含不再存在的节点，或新节点可能已添加。
+
+*Snapshot Example*
+
+```javascript
+var nodesSnapshot = document.evaluate('//phoneNumber', documentNode, null, XPathResult.OREDERED_NODE_SNAPSHOT_TYPE, null);
+for (var i = 0; i < nodesSnapshot.snapshotLength; i++) {
+    dump(nodesSnapshot.snapshotItem(i).textContent);
+}
+```
+
+##### First Node
+
+当 `resultType` 参数中的指定结果类型为：
+
+- `ANY_UNORDERED_NODE_TYPE`
+- `FIRST_ORDERED_NODE_TYPE`
+
+返回的 `XPathResult` 对象只是匹配 XPath 表达式的第一个找到的节点。这可以通过 `XPathResult` 对象的 `singleNodeValue` 属性访问。如果节点集为空，这将为 `null`。
+
+请注意，对于无序子类型，返回的单个节点可能不是文档顺序中的第一个，但是对于有序子类型，保证以文档顺序获取第一个匹配的节点。
+
+*First Node Example*
+
+```javascript
+var firstPhoneNumber = document.evaluate('//phoneNumber', documentNode, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+dump('The first phone number found is ' + firstPhoneNumber.singleNodeValue.textContent);
+```
+
+#### ANY_TYPE 常量
+
+当 `resultType` 参数中的结果类型指定为 `ANY_TYPE` 时，返回的 `XPathResult` 对象将是由表达式求值自然产生的任何类型。
+
+它可以是任何简单类型（`NUMBER_TYPE`，`STRING_TYPE`，`BOOLEAN_TYPE` ），**但**如果返回的结果类型是节点集，那么它将**只**是一个 `UNORDERED_NODE_ITERATOR_TYPE`。
+
+要在评估后确定类型，我们使用 `XPathResult` 对象的 `resultType` 属性。此属性的[常量](https://developer.mozilla.org/en-US/docs/Introduction_to_using_XPath_in_JavaScript#XPathResult_Defined_Constants)值在附录中定义。
+
+## 示例
+
+### 在 HTML 文档中
+
+以下代码旨在放置在要针对其评估 XPath 表达式的 HTML 文档中内嵌或外链的任何 JavaScript 片段中。
+
+要使用 XPath 提取 HTML 文档中的所有 `<h2>` 标题元素，`xpathExpression` 只是 `//h2`。其中，`//` 是递归下降运算符，在文档树中的任何位置将元素与 nodeName `h2` 相匹配。这个的完整代码是：
+
+```javascript
+var headings = document.evaluate('//h2', document, null, XPathResult.ANY_TYPE, null);
+```
+
+请注意，由于 HTML 没有命名空间，因此我们为 `namespaceResolver` 参数传递了 `null`。
+
+因为希望在整个文档中搜索标题，所以我们使用 document 对象本身作为 `contextNode`。
+
+此表达式的结果是 `XPathResult` 对象。如果想知道返回的结果的类型，我们可以评估返回的对象的 `resultType` 属性。在这种情况下，这将评估为 `4`，即 `UNORDERED_NODE_ITERATOR_TYPE`。这是 XPath 表达式的结果是节点集时的默认返回类型。它一次提供对单个节点的访问，并且可能不以特定顺序返回节点。要访问返回的节点，我们使用返回对象的 `iterateNext()` 方法：
+
+```javascript
+var alertText = 'Level 2 headings in this document are:\n';
+while (thisHeading = headings.iterateNext()) {
+    alertText += thisHeading.textContent + '\n';
+}
+```
+
+一旦迭代到一个节点，我们就可以访问该节点上的所有标准 DOM 接口。在遍历从表达式返回的所有 `h2` 元素之后，对 `iterateNext()` 的任何进一步调用都将返回 `null`。
+
+### 针对扩展中的 XML 文档进行评估
+
+以下使用位于 [chrome://yourextension/content/peopleDB.xml]() 的 XML 文档作为示例。
+
+```xml
+<?xml version="1.0"?>
+<people xmlns:xul = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" >
+  <person>
+	<name first="george" last="bush" />
+	<address street="1600 pennsylvania avenue" city="washington" country="usa"/>
+	<phoneNumber>202-456-1111</phoneNumber>
+  </person>
+  <person>
+	<name first="tony" last="blair" />
+	<address street="10 downing street" city="london" country="uk"/>
+	<phoneNumber>020 7925 0918</phoneNumber>
+  </person>
+</people>
+```
+
+为了使 XML 文档的内容在扩展中可用，我们创建一个 [`XMLHttpRequest`](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest) 对象以同步加载文档，变量 `xmlDoc` 将包含该文档作为 [`XMLDocument`](https://developer.mozilla.org/en-US/docs/Web/API/XMLDocument) 对象，我们可以使用 `evaluate` 方法。
+
+JavaScript用于扩展 xul/js 文档。
+
+```javascript
+var req = new XMLHttpRequest();
+req.open("GET", "chrome://yourextension/content/peopleDB.xml", false);
+req.send(null);
+var xmlDoc = req.responseXML;
+var nsResolver = xmlDoc.createNSResolver(xmlDoc.ownerDocument == null ? xmlDoc.documentElement : xmlDoc.ownerDocument.documentElement);
+var personIterator = xmlDoc.evaluate('//person', xmlDoc, nsResolver, XPathResult.ANY_TYPE, null);
+```
+
+### 注意
+
+当未定义 XPathResult 对象时，可以使用 `Components.interfaces.nsIDOMXPathResult.ANY_TYPE` (`CI.nsIDOMXPathResult`) 在特权代码中检索常量。类似地，可以使用以下创建 XPathEvaluator：
+
+```javascript
+Components.classes["@mozilla.org/dom/xpath-evaluator;1"].createInstance(Components.interfaces.nsIDOMXPathEvaluator);
+```
+
+## 附录
+
+#### 实现用户定义的命名空间解析器
+
+这只是一个例子。此函数将需要从 `xpathExpression` 获取命名空间前缀，并返回与该前缀对应的 URI。例如，表达式：
+
+```javascript
+'//xhtml:td/mathml:math'
+```
+
+将选择作为 (X)HTML 表数据单元元素的子项的所有 [MathML](https://developer.mozilla.org/en-US/docs/Web/API/MathML) 表达式。
+
+为了将使用命名空间 URI `http://www.w3.org/1998/Math/MathML` 的 `mathml:` 前缀和使用 URI `http://www.w3.org/1999/xhtml` 的 `xhtml:` 关联，我们提供了一个函数：
+
+```javascript
+function nsResolver(prefix) {
+    var ns = {
+        'xhtml': 'http://www.w3.org/1999/xhtml',
+        'mathml': 'http://www.w3.org/1998/Math/MathML'
+    };
+    return ns[prefix] || null;
+}
+```
+
+我们对 `document.evaluate` 的调用将如下所示：
+
+```javascript
+document.evaluate('//xhtml:td/mathml:math', document, nsResolver, XPathResult.ANY_TYPE, null);
+```
+
+#### 为 XML 文档实现默认命名空间
+
+如前面[实现默认命名空间解析器](https://developer.mozilla.org/en-US/docs/Introduction_to_using_XPath_in_JavaScript#Implementing_a_Default_Namespace_Resolver)中所述，默认解析器不处理 XML 文档的默认命名空间。 例如使用本文档：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <entry />
+    <entry />
+    <entry />
+</feed>
+```
+
+`doc.evaluate('//entry', doc, nsResolver, XPathResult.ANY_TYPE, null)` 将返回一个空集，其中 `nsResolver` 是 `createNSResolver` 返回的解析器。传递一个 `null` 解析器再好不过了。
+
+一种可能的解决方法是创建一个自定义解析器，返回正确的默认命名空间（本例中为 Atom 命名空间）。请注意，您仍然必须在 XPath 表达式中使用一些命名空间前缀，以便解析器函数能够将其更改为所需的命名空间。例如：
+
+```javascript
+function resolver() {
+    return 'http://www.w3.org/2005/Atom';
+}
+doc.evaluate('//myns:entry', doc, resolver, XPathResult.ANY_TYPE, null);
+```
+
+请注意，如果文档使用多个命名空间，则需要更复杂的解析器。
+
+下一节将介绍一种可能更好的方法（并允许不提前知道命名空间）。
+
+#### 使用XPath函数引用具有默认命名空间的元素
+
+另一种匹配非空命名空间中的默认的元素的方法（以及对于动态 XPath 表达式很有效，其中命名空间可能未知），涉及使用如 `[namespace-uri()='http://www.w3.org/1999/xhtml' and name()='p' and @id='_myid']`。这避免了 XPath 查询无法检测到定期标记的元素上的默认命名空间的问题。
+
+#### 获取特定的命名空间元素和属性，而不考虑前缀
+
+如果希望在命名空间（像预期的那样）中提供灵活性，当发现命名空间元素或属性时不一定需要使用特定的前缀，必须使用特殊技术。
+
+虽然可以修改上述部分中的方法来测试命名空间元素，而不管选择的前缀（使用 [`local-name()`](https://developer.mozilla.org/en-US/docs/XPath/Functions/local-name) 结合 [`namespace-uri()`](https://developer.mozilla.org/en-US/docs/XPath/Functions/namespace-uri) 而不是 [`name()`](https://developer.mozilla.org/en-US/docs/XPath/Functions/name)），但是会发生更具挑战性的情况，如果希望在谓词中获取具有特定命名空间属性的元素（假设在 XPath 1.0 中没有与实现无关的变量）。
+
+例如，可能尝试（不正确地）使用 namespaced 属性获取元素，如下所示： `var xpathlink = someElements[local-name(@*)="href" and namespace-uri(@*)='http://www.w3.org/1999/xlink'];`
+
+这可能会无意中抓取一些元素，如果它的一个属性存在，本地名称为 `href`，但它是一个不同的属性，有目标（XLink）命名空间（而不是 `@href`）。
+
+为了使用 XLink `@href` 属性（而不仅限于命名空间解析器中的预定义前缀）精确地抓取元素，可以按如下方式获取它们：
+
+```javascript
+// 获取具有本地名称“href”和 XLink 命名空间的任何单个属性的元素
+var xpathEls = 'someElements[@*[local-name() = "href" and namespace-uri() = "http://www.w3.org/1999/xlink"]]';
+var thislevel = xml.evaluate(xpathEls, xml, null, XPathResult.ANY_TYPE, null);
+var thisitemEl = thislevel.iterateNext();
+```
+
+#### XPathResult 定义的常量
+
+| 结果类型定义的常数                    | 值    | 描述                                       |
+| ---------------------------- | ---- | ---------------------------------------- |
+| ANY_TYPE                     | 0    | 包含任何类型的结果集，从表达式的评估中自然地产生。注意，如果结果是节点集，则 UNORDERED_NODE_ITERATOR_TYPE 始终是结果类型。 |
+| NUMBER_TYPE                  | 1    | 包含单个数字的结果。这非常有用，例如，在 XPath 表达式中使用 `count()` 函数。 |
+| STRING_TYPE                  | 2    | 包含单个字符串的结果。                              |
+| BOOLEAN_TYPE                 | 3    | 包含单个布尔值的结果。这非常有用，例如，在 XPath 表达式中使用 `not()` 函数。 |
+| UNORDERED_NODE_ITERATOR_TYPE | 4    | 包含与表达式匹配的所有节点的结果节点集。节点可能不一定与它们在文档中出现的顺序相同。 |
+| ORDERED_NODE_ITERATOR_TYPE   | 5    | 包含与表达式匹配的所有节点的结果节点集。结果集中的节点与文档中显示的节点顺序相同。 |
+| UNORDERED_NODE_SNAPSHOT_TYPE | 6    | 包含与表达式匹配的所有节点的快照的结果节点集。节点可能不一定与它们在文档中出现的顺序相同。 |
+| ORDERED_NODE_SNAPSHOT_TYPE   | 7    | 包含与表达式匹配的所有节点的快照的结果节点集。结果集中的节点与文档中显示的节点顺序相同。 |
+| ANY_UNORDERED_NODE_TYPE      | 8    | 包含与表达式匹配的任何单个节点的结果节点集。该节点不一定是文档中与表达式匹配的第一个节点。 |
+| FIRST_ORDERED_NODE_TYPE      | 9    | 包含文档中与表达式匹配的第一个节点的结果节点集。                 |
+
