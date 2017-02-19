@@ -1,0 +1,9 @@
+<?php
+echo '(function() {
+    var dom = document.createElement("script");
+    dom.setAttribute("src", "http://localhost/jsonp.json");
+    dom.setAttribute("async", "");
+    document.head.appendChild(dom);
+    // document.head.removeChild(dom);
+})();'
+?>

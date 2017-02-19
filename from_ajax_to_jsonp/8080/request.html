@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<div>你好&nbsp;<span id="msg"></span>&nbsp;你好</div>
+<script>
+    /* AJAX */
+    (function() {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+            // console.log(xhr.responseText);
+            // XHR
+            // msg.innerText = xhr.responseText;
+            // msg.innerHTML = xhr.responseText;
+            // JSONP
+            eval(xhr.responseText);
+        };
+        // var url = "http://localhost:8080/response.php";
+        // var url = "http://coolman.oschina.io/test/jsonp.php";
+        // xhr.open("GET", url, true);
+        // xhr.send(null);
+    })();
+
+    /* 回调函数 */
+    function cbk(data) {
+        console.log(data);
+        console.log(data["hello"]);
+        msg.innerHTML = data["hello"];
+    }
+
+    /*  */
+    /*(function() {
+        var dom = document.createElement("script");
+        dom.setAttribute("src", "http://localhost/jsonp.json");
+        document.head.appendChild(dom);
+    })();*/
+
+    /* 模拟 head 元素发生变化 */
+    (function() {
+        document.head.onhaschange = function() {
+            console.log("head changed");
+        };
+        document.body.onhaschange = function() {
+            console.log("body changed");
+        };
+        function retreive() {
+            var dom = document.createElement("script");
+            dom.setAttribute("src", "http://localhost/jsonp.php");
+            document.head.appendChild(dom);
+            document.head.removeChild(dom);
+        }
+        retreive();
+        setInterval(retreive, 3000);
+    })();
+</script>
+<!-- <script src="http://localhost/jsonp.json">
+</script> -->
+<!-- <script src="http://localhost/include.html"></script> -->
+</body>
+</html>
