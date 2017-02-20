@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AJAX</title>
+    <meta charset="utf-8">
+</head>
+<body>
+<button onclick="sendAJAX0();">SEND AJAX 0</button>
+<button onclick="sendAJAX1();">SEND AJAX 1</button>
+<button onclick="sendAJAX2();">SEND AJAX 2</button>
+<script>
+    var xhr = new XMLHttpRequest();
+    var txtDoc;
+    /* Synchronous XMLHttpRequest on the main thread is deprecated */
+    function sendAJAX0() {
+        xhr.open("GET", "./res.php", false);
+        xhr.send(null);
+        txtDoc = xhr.responseText;
+        console.log(txtDoc);
+    }
+    /* Asynchronous XMLHttpRequest on the main thread but no result are returned */
+    function sendAJAX1() {
+        xhr.open("GET", "./res.php", true);
+        xhr.send(null);
+        txtDoc = xhr.responseText;
+        console.log(txtDoc);
+    }
+    /* Asynchronous XMLHttpRequest on the main thread with callback to handle the returned result */
+    function sendAJAX2() {
+        xhr.onload = function() {
+            txtDoc = xhr.responseText;
+            console.log(txtDoc);
+        };
+        xhr.open("GET", "./res.php", true);
+        xhr.send(null);
+    }
+</script>
+</body>
+</html>
