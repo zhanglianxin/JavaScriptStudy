@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate ss qrcode image</title>
+    <meta charset="utf-8">
+    <style>
+        :root{
+            --qrSquare: 300px;
+        }
+        section{
+            padding: 15px;
+        }
+        #qrcodeImg{
+            width: var(--qrSquare);
+            height: var(--qrSquare);
+            margin: 0 auto;
+            transition: transform .3s;
+        }
+        .rotate{
+            transform: rotateZ(360deg);
+        }
+    </style>
+</head>
+<body>
+    <div id="hdn" style="display: none;"></div>
+    <section>
+        <div id="qrcodeImg"></div>
+    </section>
+
+    <script src="qrcode.min.js"></script>
+    <script>
+        fetch('http://mian233.lvdp.net/ajax.php?verify=true&mod=getfreess')
+            .then(function (response) {
+                response.json().then(function (data) {
+                    console.log(data[0]);
+                    /*Object {
+                        i: "47.89.9.201"
+                        l: "{"count":"1","netspeed":"24.00_MB/s"}"
+                        m: "rc4-md5"
+                        p: "10010"
+                        pw: "8641"
+                        r: "[推荐]香港"
+                        st: true
+                    }*/
+                });
+        });
+        // ssText = "ss://" + base64(m + ":" + pw + "@" + i + ":" + p);
+        genQrcode(ssText);
+
+        var qrcodeImg = document.querySelector('#qrcodeImg');
+        var qrcode = new QRCode(qrcodeImg, {
+            width: 300,
+            height: 300
+        });
+        function genQrcode(text){
+            qrcode.makeCode(text);
+            qrcodeImg.classList.toggle('rotate');
+        }
+    </script>
+</body>
+</html>
