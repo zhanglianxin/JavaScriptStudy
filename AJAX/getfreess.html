@@ -29,23 +29,16 @@
 
     <script src="qrcode.min.js"></script>
     <script>
+        var ssText = "Hello there!";
         fetch('http://mian233.lvdp.net/ajax.php?verify=true&mod=getfreess')
             .then(function (response) {
                 response.json().then(function (data) {
-                    console.log(data[0]);
-                    /*Object {
-                        i: "47.89.9.201"
-                        l: "{"count":"1","netspeed":"24.00_MB/s"}"
-                        m: "rc4-md5"
-                        p: "10010"
-                        pw: "8641"
-                        r: "[推荐]香港"
-                        st: true
-                    }*/
+                    if (data[0]) {
+                        ssText = "ss://" + btoa(data[0]["m"] + ":" + data[0]["pw"] + "@" + data[0]["i"] + ":" + data[0]["p"]);
+                        genQrcode(ssText);
+                    }
                 });
         });
-        // ssText = "ss://" + base64(m + ":" + pw + "@" + i + ":" + p);
-        genQrcode(ssText);
 
         var qrcodeImg = document.querySelector('#qrcodeImg');
         var qrcode = new QRCode(qrcodeImg, {
