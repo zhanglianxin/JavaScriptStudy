@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <!-- Learn ES2015 -->
+    <!-- https://babeljs.io/learn-es2015/ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/systemjs/0.20.19/system.js"></script>
+    <script>
+        /* Arrows and Lexical This */
+
+        // Expression bodies
+        let evens = (function (scope) {
+            let result = [];
+            for (let i = 0; i < scope; i++) {
+                if (i % 2 === 0) {
+                    result.push(i);
+                }
+            }
+
+            return result;
+        })(10);
+        let odds = evens.map(v => v + 1);
+        let nums = evens.map((v, i) => v + i);
+        console.log(odds, nums);
+
+        // Statement bodies
+        let fives = [];
+        nums.forEach(v => {
+            if (v % 5 === 0) {
+                fives.push(v);
+            }
+        });
+        console.log(fives);
+
+        // Lexical this
+        // Arrows share the same lexical `this` as their surrounding code
+        let bob = {
+            _name: 'Bob',
+            _friends: ['Tom'],
+            printFriends() {
+                this._friends.forEach(f =>
+                    console.log(this._name + ' knows ' + f));
+            },
+        };
+        bob.printFriends();
+
+        // Lexical arguments
+        // If an arrow is inside another function, it shares the `arguments`
+        //   variable of its parent function
+        let square = function () {
+            return (() => {
+                let numbers = [];
+                for (let number of arguments) {
+                    numbers.push(number * number);
+                }
+
+                return numbers;
+            })();
+        };
+
+        console.log(square(2, 4, 7.5, 8, 11.5, 21));
+
+        /* Classes */
+
+        // Classes support prototype-based inheritance, super calls, instance
+        //  and static methods and constructors.
+        class SkinnedMesh extends THREE.Mesh {
+            constructor(geometry, materials) {
+                super(geometry, materials);
+
+                this.idMatrix = SkinnedMesh.defaultMatrix();
+                this.bones = [];
+                this.boneMatrices = [];
+                // ...
+            }
+            update(camera) {
+                // ...
+                super.update();
+            }
+            static defaultMatrix() {
+                return new THREE.Matrix4();
+            }
+        }
+
+        /* Enhanced Object Literals */
+
+        let theProtoObj = {
+            name: 'theProtoObj',
+        };
+        let somethingElse = {
+            name: 'somethingElse',
+        };
+        let handler = function () {
+            console.log('this is a handler');
+        };
+        let obj = {
+            // Sets the prototype. "__proto__" or '__proto__' would also work.
+            __proto__: theProtoObj,
+            // Computed property name does not set prototype or trigger early
+            //   error for duplicate __proto__ proerties.
+            ['__proto__']: somethingElse,
+            // Shorthand for 'handler: handler'
+            handler,
+            // Methods
+            toString() {
+                // Super calls
+                return 'd ' + super.toString();
+            },
+            // Computed (dynamic) property names
+            ['prop_' + (() => 42)()]: 42,
+        };
+        console.log(obj);
+
+        /* Template Strings */
+
+        // Basic literal string creation
+        console.log(`This is a pretty little template string.`);
+
+        // Multiline strings
+        console.log(`In ES5 this is
+not legal.`);
+
+        // Intepolate variable bindings
+        let name = 'Bob', time = 'today';
+        console.log(`Hello ${name}, how are you ${time}?`);
+
+        // Unescaped template strings
+        console.log(String.raw`In ES5 "\n" is a line-feed.`);
+
+        // Construct an HTTP request prefix is used to interpret the
+        //   replacements and construction
+        /*GET`http://foo.org/bar?a=${a}&$b=${b}
+            Content-Type: application/json
+            X-Credentials: ${credentials}
+            {
+                'foo': ${foo},
+                'bar': ${bar},
+            }
+        `(myOnReadyStateChangeHandler);*/
+
+        /* Destructuring */
+
+        // Destructuring allows binding using pattern matching, with support
+        //   for matching arrays and objects. Destructuring is fail-soft,
+        //   similar to standard object lookup foo['bar'], producing undefined
+        //   values when not found.
+
+        // list matching
+        let [a, , b] = [1, 2, 3];
+        console.log(a, b);
+
+        // object matching
+        let {op, lhs, rhs} = (function getASTNode() {
+            return {
+                op: 'op',
+                lhs: 'lhs',
+                rhs: 'rhs',
+            };
+        })();
+        console.log(op, lhs, rhs);
+
+        // Can be used in parameter position
+        let g = function ({name: x}) {
+            console.log(x);
+        };
+        g({name: 5});
+
+        // Fail-soft destructuring
+        let [aa] = [];
+        console.log(aa);
+
+        // Fail-soft destructuring with defaults
+        let [aaa = 1] = [];
+        console.log(aaa);
+
+        // Destructuring + defaults arguments
+        let r = function ({x, y, w = 10, h = 10}) {
+            return x + y + w + h;
+        };
+        console.log(r({x: 1, y: 2}));
+
+        /* Default + Rest + Spread */
+
+        let f = function (x, y = 12) {
+            // y is 12 if not passed (or passed as undefined)
+            return x + y;
+        };
+        console.log(f(3));
+
+        f = function (x, ...y) {
+            // y is an Array
+            return x * y.length;
+        };
+        console.log(f(3, 'hello', true));
+
+        f = function (x, y, z) {
+            return x + y + z;
+        };
+        console.log(f(...[1, 2, 3]));
+
+        /* Let + Const */
+
+        f = function () {
+            let x;
+
+            {
+                // this is ok since it's a block scoped name
+                const x = 'sneaky';
+                // error, was just defined with `const` above
+                x = 'foo';
+            }
+
+            // this is ok since it was declared with `let`
+            x = 'bar';
+            // error, already declared above in this block
+            let x = 'inner';
+        };
+
+        /* Iterators + For..Of */
+
+        // Iterator objects enable custom iteration like CLR IEnumerable or
+        //   Java Iterable. Generalize `for..in` to custom iterator-based
+        //   iteration with `for..of`. Don't require realizing an array,
+        //   enabling lazy design patterns link LINQ.
+
+        let fibonacci = {
+            [Symbol.iterator]() {
+                let pre = 0, cur = 1;
+
+                return {
+                    next() {
+                        [pre, cur] = [cur, pre + cur];
+
+                        return {
+                            done: false,
+                            value: cur,
+                        };
+                    },
+                };
+            },
+        };
+
+        let result = (function (scope) {
+            let result = [];
+            for (let n of fibonacci) {
+                if (n > scope) {
+                    break;
+                }
+                result.push(n);
+            }
+
+            return result;
+        })(1000);
+
+        console.log(result);
+
+        // Iteration is based on these duck-typed interfaces
+        //   (using TypeScript type syntax for exposition only):
+        /*interface IteratorResult {
+            done: boolean;
+            value: any;
+        }
+        interface Iterator {
+            next(): IteratorResult;
+        }
+        interface Iterable {
+            [Symbol.iterator](): Iterator
+        }*/
+
+        /* Generators */
+
+        // Generators simplify iterator-authoring using `function*` and `yield`.
+        //   A function declared as function* returns a Generator instance.
+        //   Generators are subtypes of iterators which include additional
+        //   `next` and `throw`. These enable values to flow back into the
+        //   generator, so `yield` is an expression form which returns a value
+        //   (or throws).
+
+        fibonacci = {
+            [Symbol.iterator]: function* () {
+                let pre = 0, cur = 1;
+                for (;;) {
+                    let temp = pre;
+                    pre = cur;
+                    cur += temp;
+                    yield cur;
+                }
+            },
+        };
+
+        result = (function (scope) {
+            let result = [];
+            for (let n of fibonacci) {
+                if (n > scope) {
+                    break;
+                }
+                result.push(n);
+            }
+
+            return result;
+        })(1000);
+
+        console.log(result);
+
+        // The generator interface is
+        //   (using TypeScript type syntax for exposition only):
+        /*interface Generator extends Iterator {
+            next(value?: any): IteratorResult;
+            throw(exception: any);
+        }*/
+
+        /* Modules */
+
+        /* Module Loaders */
+
+        /* Map + Set + WeakMap + WeakSet */
+
+        // WeakMaps provides leak-free object-key'd side tables.
+
+        // Sets
+        let s = new Set();
+        s.add('hello').add('goodbye').add('hello');
+        console.log(s.size, s.has('hello'));
+
+        // Maps
+        let m = new Map();
+        m.set('hello', 42);
+        m.set(s, 34);
+        console.log(m.get(s));
+
+        // Weak Maps
+        let wm = new WeakMap();
+        wm.set(s, {extra: 42});
+        console.log(wm.size);
+
+        // Weak Sets
+        let ws = new WeakSet();
+        ws.add({data: 42});
+        // Because the added object has no other references, it will not be
+        //   held in the set
+        console.log(ws.size);
+
+        /* Proxies */
+
+        // Proxies enable creation of objects with the full range of behaviors
+        //   available to host objects. Can be used for interception, object
+        //   virtualization, logging/profiling, etc.
+
+        // Proxying a normal object
+        let target = {};
+        let handler1 = {
+            get: function (receiver, name) {
+                return `Hello, ${name}!`;
+            },
+        };
+        let p = new Proxy(target, handler1);
+        console.log(p.world);
+
+        // Proxying a function object
+        target = function () {
+            return 'I am the target';
+        };
+        handler1 = {
+            apply: function (receiver, ...args) {
+                return 'I am the proxy';
+            },
+        };
+        p = new Proxy(target, handler1);
+        console.log(p());
+
+        /* Symbols */
+
+        // Symbols enable access control for object state.
+        //   Symbols allow properties to be keyed by either `string` or `symbol`.
+        //   Symbols are a new primitive type. Optional `name` parameter used
+        //   in debugging = but is not part of identity.
+        //   Symbols are unique, but not private since they are exposed via
+        //   reflection features like `Object.getOwnPropertySymbols`.
+
+        (function () {
+            let key = Symbol('key');
+
+            let MyClass = function (privateData) {
+                this[key] = privateData;
+            };
+
+            MyClass.prototype = {
+                doStuff: function () {
+                    // ... this[key] ...
+                },
+            };
+
+            console.log(typeof key); // symbol
+
+            let c = new MyClass('hello');
+            console.log(c['key']); // undefined
+        })();
+
+        /* Subclassable Built-ins */
+
+        // In ES2015, built-ins like `Array`, `Date` and DOM `Element` can be subclassed.
+
+        class MyArray extends Array {
+            constructor(...args) {
+                super(...args);
+            }
+        }
+
+        let arr = new MyArray();
+        arr[1] = 12;
+        console.log(arr.length);
+
+        /* Math + Number + String + Object APIs */
+
+        console.log(Number.EPSILON,
+            Number.isInteger(Infinity), Number.isNaN('NaN'));
+
+        console.log(Math.acosh(3), Math.hypot(3, 4),
+            Math.imul(Math.pow(2, 32) - 1, Math.pow(2, 32) - 2));
+
+        console.log('abcde'.includes('cd'), 'abc'.repeat(3));
+
+        console.log(Array.from(document.querySelectorAll('*')),
+            Array.of(1, 2, 3),
+            [0, 0, 0].fill(7, 1),
+            [1, 2, 3].findIndex(x => x === 2),
+            ['a', 'b', 'c'].entries(),
+            ['a', 'b', 'c'].keys(),
+            /*['a', 'b', 'c'].values()*/);
+
+        // 通过复制一个或多个对象来创建一个新的对象。
+        // console.log(Object.assign(Point, {origin: new Point(0, 0)}));
+    </script>
+</body>
+</html>
