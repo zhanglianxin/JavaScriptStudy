@@ -434,6 +434,73 @@ not legal.`);
 
         // 通过复制一个或多个对象来创建一个新的对象。
         // console.log(Object.assign(Point, {origin: new Point(0, 0)}));
+
+        /* Binary and Octal Literals */
+
+        console.log(0b111110111 === 503);
+        console.log(0o767 === 503);
+
+        /* Promises */
+
+        // Promises are a library for asynchronous programming.
+        //   Promises are a first class representation of a value
+        //   that may be made available in the future.
+        //   Promises are used in many existing JavaScript libraries.
+
+        let timeout = function (duration = 0) {
+            return new Promise((resolve, reject) => {
+                setTimeout(resolve, duration);
+            });
+        };
+        let q = timeout(1000).then(() => {
+            return timeout(2000);
+        }).then(() => {
+            throw new Error('hmm');
+        }).catch((err) => {
+            return Promise.all([timeout(100), timeout(200)]);
+        });
+        console.log(q);
+
+        /* Reflect API */
+
+        // Full reflection API exposing the runtime-level meta-operations on objects.
+        //   This is effectively the inverse of the Proxy API, and allows making
+        //   calls corresponding to the same meta-operations as the proxy traps.
+        //   Especially useful for implementing proxies.
+
+        let o = {a: 1};
+        Object.defineProperty(o, 'b', {value: 2});
+        o[Symbol('c')] = 3;
+
+        console.log(Reflect.ownKeys(o));
+
+        /*let C = function (a, b) {
+            this.c = a + b;
+        };*/
+        class C {
+            constructor(a, b) {
+                this.c = a + b;
+            }
+        }
+        let instance = Reflect.construct(C, [20, 22]);
+        console.log(instance.c);
+
+        /* Tail Calls */
+
+        // Calls in tail-position are guaranteed to not grow the stack unboundedly.
+        //   Makes recursive algorithms safe in the face of unbounded inputs.
+        'use strict';
+        let factorial = function (n, acc = 1) {
+            if (n <= 1) {
+                return acc;
+            } else {
+                return factorial(n - 1, n * acc);
+            }
+        };
+
+        // Stack overflow in most implementations today,
+        //   but safe on arbitrary inputs in ES2015
+        // console.log(factorial(100000));
     </script>
 </body>
 </html>
